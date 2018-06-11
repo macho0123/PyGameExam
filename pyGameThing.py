@@ -32,7 +32,7 @@ NOTE_NAMES = 'C C# D D# E F F# G G# A A# B'.split()
 Gstring = 'G4 G#4 A4 A#4 B4 C4 C#4 D4'.split()
 Dstring = 'D4 D#4 E4 F4 F#4 G5 G#5 A5'.split()
 Astring = 'A5 A#5 B5 C5 C#5 D5 D#5 E5'.split()
-Estring = 'E5 F5 F#6 G6 G#6 A6 A#6 B6'.split()
+Estring = 'E5 F5 F#5 G6 G#6 A6 A#6 B6'.split()
 strings = [Gstring, Dstring, Astring, Estring]
 
 fretPosition = '150,20 160,30'.split()
@@ -64,7 +64,7 @@ def note_to_fftbin(n):
 imin = max(0, int(np.floor(note_to_fftbin(NOTE_MIN - 1))))
 imax = min(SAMPLES_PER_FFT, int(np.ceil(note_to_fftbin(NOTE_MAX + 1))))
 
-# Allocate space to run an FFT. 
+# Allocate space to run an FFT.
 buf = np.zeros(SAMPLES_PER_FFT, dtype=np.float32)
 
 # Initialize audio
@@ -100,14 +100,8 @@ def getPitchData():
     n0 = int(round(n))
     nC = round(n - n0, 2)
 
-<<<<<<< HEAD
     # Console output once we have a full buffer
     num_frames += 1
-=======
-  if num_frames >= FRAMES_PER_FFT:
-    if (n0>noteMinUser):
-      return note_name(n0)  # return n-n0 for cents (means accuracy measure)
->>>>>>> 876eeb2313d16000960fbea748441c7831b2fb70
 
     if num_frames >= FRAMES_PER_FFT:
         # print ('freq: {:7.2f} Hz     note: {:>3s} {:+.2f}'.format(
@@ -138,13 +132,12 @@ black = (0, 0, 0)
 purple = (42, 44, 206)
 pink = (255, 200, 200)
 
-# Global variables (pythons grid axis are retarded)
-noteLocationX = 100 # span of one fret, needs to be multiplied by fret number
-noteLocationY = 300 
-indicatorLocationY = 570
+# Global variables
+playerLocationX = 100
+playerLocationY = 200
 
 indicatorWidth = 80
-indicatorHeight = 21
+indicatorHeight = 20
 
 notesToPlay = []
 
@@ -152,18 +145,9 @@ notesToPlay = []
 # Note class
 class Note:
 
-<<<<<<< HEAD
     def __init__(self, fret, string):
         self.rect = pygame.rect.Rect((playerLocationX + fret * 50, playerLocationY, indicatorWidth, indicatorHeight))
         self.fret = fret
-=======
-    def __init__(self ,fret, string):
-      if (fret!=0):
-        self.rect = pygame.rect.Rect((50 + noteLocationX*fret, noteLocationY, indicatorWidth, indicatorHeight*3))
-        self.string = string
-      else:
-        self.rect = pygame.rect.Rect((50 + noteLocationX*fret, noteLocationY, 10, indicatorHeight*3))
->>>>>>> 876eeb2313d16000960fbea748441c7831b2fb70
         self.string = string
 
     def moveUp(self):
@@ -188,12 +172,7 @@ class Note:
 
 # Class Button
 class Button:
-<<<<<<< HEAD
     def __init__(self, img_in, x, y, width, height, img_act, x_act, y_act, action=None):
-=======
-
-    def __init__(self, img_in, x, y, width, height, img_act, x_act, y_act, action = None):
->>>>>>> 876eeb2313d16000960fbea748441c7831b2fb70
         mouse = pygame.mouse.get_pos()
         click = pygame.mouse.get_pressed()
         if x + width > mouse[0] > x and y + height > mouse[1] > y:
@@ -205,7 +184,6 @@ class Button:
             screen.blit(img_in, (x, y))
 
 
-<<<<<<< HEAD
 def indicatePosition(fret, string):
     global indicator
 
@@ -218,25 +196,6 @@ def indicatePosition(fret, string):
         # screen.blit(indicator, (-50 + fret*indicatorWidth + 10, -indicatorWidth + display_height - string*indicatorHeight + 10))
         screen.blit(indicator, indicatorHitbox)
         testCollision(indicatorHitbox)
-=======
-  #hitbox serves as a position for surface too
-
-    if (fret>0):
-      indicator = pygame.Surface((indicatorWidth, indicatorHeight), pygame.SRCALPHA)   # per-pixel alpha
-      indicatorHitbox = pygame.rect.Rect(50 + noteLocationX*fret, indicatorLocationY - string*(indicatorHeight + 7 - string/1.5), indicatorWidth, indicatorHeight)
-      indicator.fill((255,255,255,128))                         # notice the alpha value in the color
-      screen.blit(indicator, indicatorHitbox) #takes rectangle as position 2 arguement 
-      testCollision(indicatorHitbox)
-
-
-
-    if (fret==0):
-      indicator = pygame.Surface((10, indicatorHeight), pygame.SRCALPHA)   # per-pixel alpha
-      indicatorHitbox = pygame.rect.Rect(50 + noteLocationX*fret, indicatorLocationY - string*(indicatorHeight + 7 - string/1.5), 10, indicatorHeight*3)
-      indicator.fill((255,255,255,128))                         # notice the alpha value in the color
-      screen.blit(indicator, indicatorHitbox)
-      testCollision(indicatorHitbox)
->>>>>>> 876eeb2313d16000960fbea748441c7831b2fb70
 
     if (fret == 0):
         indicator = pygame.Surface((10, indicatorHeight), pygame.SRCALPHA)  # per-pixel alpha
@@ -268,7 +227,6 @@ def message_display(text):
 
     largeText = pygame.font.SysFont('Arial', 15, white)
     TextSurf, TextRect = text_objects(text, largeText)
-<<<<<<< HEAD
     TextRect.center = (x, y)
     # TextRect.center = ((display_width/2),(display_height/2))
     screen.blit(TextSurf, TextRect)
@@ -278,14 +236,6 @@ def update(dt):
     global indicator
     global playerLocationY
     global playerLocationX
-=======
-    TextRect.center = (x,y)
-    screen.blit(TextSurf, TextRect)
-
-def update(dt):
-
-  note = getPitchData()
->>>>>>> 876eeb2313d16000960fbea748441c7831b2fb70
 
     # Astring = 'A5 A#5 B5 C5 C#5 D5 D#5 E5'.split()
 
@@ -359,12 +309,7 @@ def quitGame():
 
 # MainMenu
 def mainmenu():
-<<<<<<< HEAD
     menu = True
-=======
-
-    menu = False
->>>>>>> 876eeb2313d16000960fbea748441c7831b2fb70
 
     while menu:
         for event in pygame.event.get():
@@ -411,7 +356,7 @@ def runPyGame():
         dt = fpsClock.tick(fps)
 
 
-screen = pygame.display.set_mode((display_width, display_height), DOUBLEBUF)
+screen = pygame.display.set_mode((display_width, display_height))
 background_image = pygame.image.load("images/background1.png").convert()
 startImg = pygame.image.load("images/starticon.png")
 quitImg = pygame.image.load("images/quiticon.png")
