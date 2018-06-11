@@ -2,6 +2,7 @@ import sys, os
  
 import pygame, numpy as np, pyaudio
 from pygame.locals import *
+import time
 import ctypes
 
 print(pygame.version.ver)
@@ -106,18 +107,24 @@ def getPitchData():
 #                                                   PYGAME STARTS HERE
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+
 display_width = 800
 display_height = 600
 name = "hello"
+clock = pygame.time.Clock()
 
+# Color schemes
 red = (255,0,0)
 green = (0,255,0)
 blue = (0,0,255)
 darkBlue = (0,0,128)
 white = (255,255,255)
 black = (0,0,0)
+purple = (42,44,206)
 pink = (255,200,200)
 
+# Global variables
 playerLocationX = 100
 playerLocationY = 200
 
@@ -127,8 +134,7 @@ indicatorHeight = 20
 notesToPlay = []
 
 
-
-
+# Note class
 class Note:
 
     def __init__(self ,fret, string):
@@ -155,6 +161,18 @@ class Note:
     def idle(self):
         pygame.draw.rect(screen, (0, 0, 128), self.rect)
 
+# Class Button
+class Button:
+    def __init__(self, img_in, x, y, width, height, img_act, x_act, y_act, action = None):
+        mouse = pygame.mouse.get_pos()
+        click = pygame.mouse.get_pressed()
+        if x + width > mouse[0] > x and y + height > mouse[1] > y:
+            screen.blit(img_act,(x_act, y_act))
+            if click[0] and action is not None:
+                time.sleep(2)
+                action()
+        else:
+            screen.blit(img_in,(x,y))
 
 def indicatePosition(fret, string):
 
@@ -281,7 +299,35 @@ def draw(screen):
 
   # Flip the display so that the things we drew actually show up.
   pygame.display.flip()
- 
+
+
+
+def quitGame():
+    pygame.quit()
+    quit()
+
+
+#MainMenu
+def mainmenu():
+
+    menu = True
+
+    while menu:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+        screen.fill(purple)
+
+        titletext = screen.blit(titleImg, (275,200))
+        startButton = Button(startImg,280,260,60,20,clickStartImg,273,258,runPyGame)
+        quitButton = Button(quitImg,475,260,60,20,clickQuitImg,470,258,quitGame)
+
+        pygame.display.update()
+        clock.tick(15)
+
+
 def runPyGame():
   # Initialise PyGame.
   pygame.init()
@@ -314,7 +360,13 @@ def runPyGame():
 
 
 screen = pygame.display.set_mode((display_width, display_height))
-background_image = pygame.image.load("background").convert()
+background_image = pygame.image.load("images/background1.png").convert()
+startImg = pygame.image.load("images/starticon.png")
+quitImg = pygame.image.load("images/quiticon.png")
+titleImg = pygame.image.load("images/titleicon.png")
+clickStartImg = pygame.image.load("images/clickedStartIcon.png")
+clickQuitImg = pygame.image.load("images/clickedQuitIcon.png")
 #player = Player()
 
+mainmenu()
 runPyGame()
