@@ -135,7 +135,7 @@ indicatorHeight = 21
 notesToPlay = []
 song = ""
 currentNote = -1
-BPMfactor = 0.4
+BPMfactor = 0.35
 
 class Note:
 
@@ -340,7 +340,7 @@ def runPyGame():
     global song
 
     #init the song (move to menu for multi-song support)
-    file = open("Jurrasic Park.txt","r")
+    file = open("JurrasicPark.txt","r")
     for line in file:
       line = line.rstrip('\n')
       song = song + line
