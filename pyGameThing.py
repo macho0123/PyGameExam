@@ -7,6 +7,9 @@ import ctypes
 
 print(pygame.version.ver)
 
+start = time.time()
+time.clock()   
+
 noteMinUser = 55  # G4
 NOTE_MAX = 90  # G7
 NOTE_MIN = noteMinUser - 10
@@ -108,55 +111,61 @@ clock = pygame.time.Clock()
 # Color schemes
 red = (255, 0, 0)
 green = (0, 255, 0)
-blue = (0, 0, 255)
+blue = (0, 255, 255)
 darkBlue = (0, 0, 128)
 white = (255, 255, 255)
 black = (0, 0, 0)
 purple = (42, 44, 206)
 pink = (255, 200, 200)
 
+stringToColor = [black, red, blue, white]
+
+
 # Global variables
 playerLocationX = 100
 playerLocationY = 200
 
 noteLocationX = 90 # span of one fret, needs to be multiplied by fret number
-noteLocationY = 300 
+noteLocationY = 10 
 indicatorLocationY = 570
 
 indicatorWidth = 80
 indicatorHeight = 21
 
 notesToPlay = []
+song = ""
+currentNote = -1
+BPMfactor = 0.4
 
-# Note class
 class Note:
 
     def __init__(self, fret, string):
+
         if (fret!=0):
-          self.rect = pygame.rect.Rect((-10 + noteLocationX*fret, noteLocationY, indicatorWidth, indicatorHeight*3))
+          self.rect = pygame.rect.Rect((-10 + noteLocationX*fret, noteLocationY, indicatorWidth, indicatorHeight*2))
           self.string = string
         else:
-          self.rect = pygame.rect.Rect((50 + noteLocationX*fret, noteLocationY, 10, indicatorHeight*3))
+          self.rect = pygame.rect.Rect((50 + noteLocationX*fret, noteLocationY, 10, indicatorHeight*2))
           self.string = string
 
     def moveUp(self):
         self.rect.move_ip(0, -10)
-        pygame.draw.rect(screen, (0, 0, 128), self.rect)
+        pygame.draw.rect(screen, (stringToColor[self.string]), self.rect)
 
     def moveDown(self):
         self.rect.move_ip(0, 10)
-        pygame.draw.rect(screen, (0, 0, 128), self.rect)
+        pygame.draw.rect(screen, (stringToColor[self.string]), self.rect)
 
     def moveRight(self):
         self.rect.move_ip(10, 0)
-        pygame.draw.rect(screen, (0, 0, 128), self.rect)
+        pygame.draw.rect(screen, (stringToColor[self.string]), self.rect)
 
     def moveLeft(self):
         self.rect.move_ip(-10, 0)
-        pygame.draw.rect(screen, (0, 0, 128), self.rect)
+        pygame.draw.rect(screen, (stringToColor[self.string]), self.rect)
 
     def idle(self):
-        pygame.draw.rect(screen, (0, 0, 128), self.rect)
+        pygame.draw.rect(screen, (stringToColor[self.string]), self.rect)
 
 
 # Class Button
@@ -174,21 +183,22 @@ class Button:
 
 
 def indicatePosition(fret, string):
+
     global indicator
 
     if (fret > 0):
         indicator = pygame.Surface((indicatorWidth, indicatorHeight), pygame.SRCALPHA)  # per-pixel alpha
         indicatorHitbox = pygame.rect.Rect(-10 + noteLocationX*fret, indicatorLocationY - string*(indicatorHeight + 7 - string/1.5), indicatorWidth, indicatorHeight)
-        indicator.fill((255, 255, 255, 128))  # notice the alpha value in the color
+        indicator.fill((255, 255, 255, 128))  # notice the alpha value in the color (use colorkey, should be faster)
         screen.blit(indicator, indicatorHitbox)
-        testCollision(indicatorHitbox)
+        testCollision(indicatorHitbox, string)
 
     if (fret == 0):
         indicator = pygame.Surface((10, indicatorHeight), pygame.SRCALPHA)  # per-pixel alpha
         indicatorHitbox = pygame.rect.Rect(50 + noteLocationX*fret, indicatorLocationY - string*(indicatorHeight + 7 - string/1.5), 10, indicatorHeight*3) 
         indicator.fill((255, 255, 255, 128))  # notice the alpha value in the color
         screen.blit(indicator, indicatorHitbox)
-        testCollision(indicatorHitbox)
+        testCollision(indicatorHitbox, string)
 
 
 def text_objects(text, font):
@@ -196,15 +206,13 @@ def text_objects(text, font):
     return textSurface, textSurface.get_rect()
 
 
-def testCollision(indicator):
+def testCollision(indicator, string):
     i = 0
     while i < len(notesToPlay):
-        print(notesToPlay[i].rect.y)
-        # print(notesToPlay[i].rect)
-        if notesToPlay[i].rect.colliderect(indicator):
-            print("indicator")
-            notesToPlay.pop(i)
-        i += 1
+      if (notesToPlay[i].string == string):
+        if (notesToPlay[i].rect.colliderect(indicator)):
+          notesToPlay.pop(i)
+      i += 1
 
 
 def message_display(text):
@@ -214,47 +222,58 @@ def message_display(text):
     largeText = pygame.font.SysFont('Arial', 15, white)
     TextSurf, TextRect = text_objects(text, largeText)
     TextRect.center = (x, y)
-    # TextRect.center = ((display_width/2),(display_height/2))
     screen.blit(TextSurf, TextRect)
 
+def getNextNote():
+
+  global currentNote
+
+  currentNote += 1
+  try:
+    return song[currentNote]  #as a string
+  except:
+    print("Song done")
 
 def update(dt):
+
     global indicator
-    global playerLocationY
-    global playerLocationX
+    global start
+    global BPMfactor
 
     # Astring = 'A5 A#5 B5 C5 C#5 D5 D#5 E5'.split()
 
     note = getPitchData()
 
     for string in strings:
-        stringNum = strings.index(string)
+        #stringNum = strings.index(string)
         if (note in string):
+            stringNum = strings.index(string)
             fret = string.index(note)
-            # print(stringNum, fret)
             indicatePosition(fret, stringNum)
-            # testing
 
-            # for rectangle in notesToPlay.items():        print(rectangle)           rectangle.moveDown()
-    """
-  Update game. Called once per frame.
-  dt is the amount of time passed since last frame.
-  If you want to have constant apparent movement no matter your framerate,
-  what you can do is something like
-  
-  x += v * dt
-  
-  and this will scale your velocity based on time. Extend as necessary."""
-    # Go through events that are passed to the script by the window.
+    if (time.time() - start > BPMfactor): #calls the function every second (change number to some kind of BPM?)
+      start = time.time()
+      fileNote = getNextNote()
+      for string in strings:
+        if (fileNote in string):
+          
+          stringNum = strings.index(string)
+          fret = string.index(fileNote)
+          if (fret==7):  #very very dirty way of doing this
+              fret=0
+              print("I changed fret")
+          notesToPlay.append(Note(fret,stringNum))
+          print(fileNote)
+          print(fret)
+          print(stringNum)
+
+
     for event in pygame.event.get():
-        # We need to handle these events. Initially the only one you'll want to care
-        # about is the QUIT event, because if you don't handle it, your game will crash
-        # whenever someone tries to exit.
+
         if event.type == QUIT:
-            pygame.quit()  # Opposite of pygame.init
-            sys.exit()  # Not including this line crashes the script on Windows. Possibly
-            # on other operating systems too, but I don't know for sure.
-        # Handle other events as you wish.
+            pygame.quit()
+            sys.exit()  
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
                 songNote = Note(0, 0)
@@ -317,6 +336,19 @@ def mainmenu():
 
 
 def runPyGame():
+
+    global song
+
+    #init the song (move to menu for multi-song support)
+    file = open("Jurrasic Park.txt","r")
+    for line in file:
+      line = line.rstrip('\n')
+      song = song + line
+    file.close()
+    print("Your song is: " + file.name)
+    print(song)
+    song = song.split(" ")
+
     # Initialise PyGame.
     pygame.init()
 
