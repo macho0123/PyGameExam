@@ -135,7 +135,7 @@ indicatorHeight = 21
 notesToPlay = []
 song = ""
 currentNote = -1
-BPMfactor = 0.35
+BPMfactor = 0.35   #
 
 class Note:
 
@@ -149,19 +149,19 @@ class Note:
           self.string = string
 
     def moveUp(self):
-        self.rect.move_ip(0, -10)
+        self.rect.move_ip(0, -5)
         pygame.draw.rect(screen, (stringToColor[self.string]), self.rect)
 
     def moveDown(self):
-        self.rect.move_ip(0, 10)
+        self.rect.move_ip(0, 5)
         pygame.draw.rect(screen, (stringToColor[self.string]), self.rect)
 
     def moveRight(self):
-        self.rect.move_ip(10, 0)
+        self.rect.move_ip(5, 0)
         pygame.draw.rect(screen, (stringToColor[self.string]), self.rect)
 
     def moveLeft(self):
-        self.rect.move_ip(-10, 0)
+        self.rect.move_ip(-5, 0)
         pygame.draw.rect(screen, (stringToColor[self.string]), self.rect)
 
     def idle(self):
@@ -234,7 +234,7 @@ def getNextNote():
   except:
     print("Song done")
 
-def update(dt):
+def update(dt, note):
 
     global indicator
     global start
@@ -242,7 +242,7 @@ def update(dt):
 
     # Astring = 'A5 A#5 B5 C5 C#5 D5 D#5 E5'.split()
 
-    note = getPitchData()
+    #note = getPitchData()
 
     for string in strings:
         #stringNum = strings.index(string)
@@ -251,7 +251,7 @@ def update(dt):
             fret = string.index(note)
             indicatePosition(fret, stringNum)
 
-    if (time.time() - start > BPMfactor): #calls the function every second (change number to some kind of BPM?)
+    if (time.time() - start > BPMfactor): #calls the function every second (calculate BPM differently)
       start = time.time()
       fileNote = getNextNote()
       for string in strings:
@@ -259,13 +259,10 @@ def update(dt):
           
           stringNum = strings.index(string)
           fret = string.index(fileNote)
-          if (fret==7):  #very very dirty way of doing this
+          if (fret==7):  #stupid way of doing this
               fret=0
-              print("I changed fret")
           notesToPlay.append(Note(fret,stringNum))
-          print(fileNote)
-          print(fret)
-          print(stringNum)
+
 
 
     for event in pygame.event.get():
@@ -289,24 +286,19 @@ def update(dt):
                 notesToPlay.append(songNote)
 
 
-def draw(screen):
-    """
-  Draw things to the window. Called once per frame.
-  """
-    # Redraw screen here.
-    note = getPitchData()
+def draw(screen, note):
+
     message_display(note)
 
-    pygame.draw.circle(screen, white, (300,540), 10) # Here <<<
-    pygame.draw.circle(screen, white, (480,540), 10) # Here <<<
+    pygame.draw.circle(screen, white, (300,540), 10)
+    pygame.draw.circle(screen, white, (480,540), 10) 
+    pygame.draw.circle(screen, white, (660,540), 10)
 
     i = 0
     while i < len(notesToPlay):
-        # print(notesToPlay[i].rect)
         notesToPlay[i].moveDown()
         i = i + 1
 
-    # Flip the display so that the things we drew actually show up.
     pygame.display.flip()
 
 
@@ -317,6 +309,7 @@ def quitGame():
 
 # MainMenu
 def mainmenu():
+
     menu = False
 
     while menu:
@@ -332,7 +325,7 @@ def mainmenu():
         quitButton = Button(quitImg, 475, 260, 60, 20, clickQuitImg, 470, 258, quitGame)
 
         pygame.display.update()
-        clock.tick(15)
+        clock.tick(60)
 
 
 def runPyGame():
@@ -349,31 +342,19 @@ def runPyGame():
     print(song)
     song = song.split(" ")
 
-    # Initialise PyGame.
     pygame.init()
 
-    # init object
-    # Note("X1", 4, 4)
-
-    # Set up the clock. This will tick every frame and thus maintain a relatively constant framerate. Hopefully.
+    # this will tick every frame and thus maintain a relatively constant framerate, hopefully
     fps = 60.0
     fpsClock = pygame.time.Clock()
 
-    # Set up the window.
-    # screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-
-    # screen is the surface representing the window.
-    # PyGame surfaces can be thought of as screen sections that you can draw onto.
-    # You can also draw surfaces onto other surfaces, rotate surfaces, and transform surfaces.
-
-    # Main game loop.
     dt = 1 / fps  # dt is the time since last frame.
     while True:  # Loop forever!
 
-        # screen.fill((0, 0, 0)) # Fill the screen with black.
+        note = getPitchData()
         screen.blit(background_image, [0, 0])
-        update(dt)  # You can update/draw here, I've just moved the code for neatness.
-        draw(screen)
+        update(dt, note) 
+        draw(screen, note)
         dt = fpsClock.tick(fps)
 
 
