@@ -28,7 +28,6 @@ SAMPLES_PER_FFT = FRAME_SIZE * FRAMES_PER_FFT
 FREQ_STEP = float(FSAMP) / SAMPLES_PER_FFT
 
 ######################################################################
-# For printing out notes
 
 NOTE_NAMES = 'C C# D D# E F F# G G# A A# B'.split()
 
@@ -42,7 +41,7 @@ fretPosition = '150,20 160,30'.split()
 
 
 ######################################################################
-# These three functions are based upon this very useful webpage:
+# functions are based upon this webpage:
 # https://newt.phys.unsw.edu.au/jw/notes.html
 
 def freq_to_number(f): return 69 + 12*np.log2(f/440.0)
@@ -50,7 +49,6 @@ def number_to_freq(n): return 440 * 2.0**((n-69)/12.0)
 def note_name(n):      return NOTE_NAMES[n % 12] + str(round(n/12 - 1))
 
 ######################################################################
-# Ok, ready to go now.
 
 # Get min/max index within FFT of notes we care about.
 # See docs for numpy.rfftfreq()
@@ -64,7 +62,6 @@ imax = min(SAMPLES_PER_FFT, int(np.ceil(note_to_fftbin(NOTE_MAX + 1))))
 #allocate space for buffer
 buf = np.zeros(SAMPLES_PER_FFT, dtype=np.float32)
 
-# Initialize audio
 stream = pyaudio.PyAudio().open(format=pyaudio.paInt16,
                                 channels=1,
                                 rate=FSAMP,
@@ -72,10 +69,6 @@ stream = pyaudio.PyAudio().open(format=pyaudio.paInt16,
                                 frames_per_buffer=FRAME_SIZE)
 
 stream.start_stream()
-
-
-#Hanning window function ( zero-valued outside of some chosen interval.)
-#window = 0.5 * (1 - np.cos(np.linspace(0, 2 * np.pi, SAMPLES_PER_FFT, False)))
 
 
 def getPitchData():
@@ -133,9 +126,9 @@ indicatorWidth = 80
 indicatorHeight = 21
 
 notesToPlay = []
-song = ""
-currentNote = -1
-BPMfactor = 0.35   #
+song = ""          # init for word containing all the notes of a song separated by space
+currentNote = -1   # init to keep track of notes already played (memory inefficient?)
+BPMfactor = 0.35   # speed of the song, needs a lot of work
 
 class Note:
 
@@ -168,7 +161,6 @@ class Note:
         pygame.draw.rect(screen, (stringToColor[self.string]), self.rect)
 
 
-# Class Button
 class Button:
     def __init__(self, img_in, x, y, width, height, img_act, x_act, y_act, action=None):
         mouse = pygame.mouse.get_pos()
@@ -236,16 +228,10 @@ def getNextNote():
 
 def update(dt, note):
 
-    global indicator
     global start
     global BPMfactor
 
-    # Astring = 'A5 A#5 B5 C5 C#5 D5 D#5 E5'.split()
-
-    #note = getPitchData()
-
     for string in strings:
-        #stringNum = strings.index(string)
         if (note in string):
             stringNum = strings.index(string)
             fret = string.index(note)
