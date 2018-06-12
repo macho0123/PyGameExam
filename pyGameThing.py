@@ -71,39 +71,30 @@ stream = pyaudio.PyAudio().open(format=pyaudio.paInt16,
 stream.start_stream()
 
 
-# Create Hanning window function ( zero-valued outside of some chosen interval.)
-window = 0.5 * (1 - np.cos(np.linspace(0, 2 * np.pi, SAMPLES_PER_FFT, False)))
+#Hanning window function ( zero-valued outside of some chosen interval.)
+#window = 0.5 * (1 - np.cos(np.linspace(0, 2 * np.pi, SAMPLES_PER_FFT, False)))
 
 
 def getPitchData():
 
     global num_frames
-    # while stream.is_active():
-    # Shift the buffer down and new data in
+    # shift the buffer down and new data in
     buf[:-FRAME_SIZE] = buf[FRAME_SIZE:]
     buf[-FRAME_SIZE:] = np.fromstring(stream.read(FRAME_SIZE), np.int16)
 
-    # Run the FFT on the windowed buffer
-    fft = np.fft.rfft(buf * window)
+    fft = np.fft.rfft(buf)
 
-    # Get frequency of maximum response in range
-    # We're taking the freq with most responses in the array. In the array '
-
+    # get maximum frequency response in given range
     freq = (np.abs(fft[imin:imax]).argmax() + imin) * FREQ_STEP
 
-    # note number and nearest note
     n = freq_to_number(freq)
     n0 = int(round(n))
     nC = round(n - n0, 2)
-    print(n)
 
     num_frames += 1
-
     if num_frames >= FRAMES_PER_FFT:
-    #num_frames = 0
       if (n0>noteMinUser):
-        print(freq)
-        return note_name(n0)  # return n-n0 for cents (means accuracy measure)
+        return note_name(n0)  # return n-n0 for cents (means accuracy measure) or use nC?
 
 # /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #                                                   PYGAME STARTS HERE
@@ -112,7 +103,6 @@ def getPitchData():
 
 display_width = 800
 display_height = 600
-name = "hello"
 clock = pygame.time.Clock()
 
 # Color schemes
@@ -129,7 +119,7 @@ pink = (255, 200, 200)
 playerLocationX = 100
 playerLocationY = 200
 
-noteLocationX = 100 # span of one fret, needs to be multiplied by fret number
+noteLocationX = 90 # span of one fret, needs to be multiplied by fret number
 noteLocationY = 300 
 indicatorLocationY = 570
 
@@ -138,13 +128,12 @@ indicatorHeight = 21
 
 notesToPlay = []
 
-
 # Note class
 class Note:
 
     def __init__(self, fret, string):
         if (fret!=0):
-          self.rect = pygame.rect.Rect((50 + noteLocationX*fret, noteLocationY, indicatorWidth, indicatorHeight*3))
+          self.rect = pygame.rect.Rect((-10 + noteLocationX*fret, noteLocationY, indicatorWidth, indicatorHeight*3))
           self.string = string
         else:
           self.rect = pygame.rect.Rect((50 + noteLocationX*fret, noteLocationY, 10, indicatorHeight*3))
@@ -189,7 +178,7 @@ def indicatePosition(fret, string):
 
     if (fret > 0):
         indicator = pygame.Surface((indicatorWidth, indicatorHeight), pygame.SRCALPHA)  # per-pixel alpha
-        indicatorHitbox = pygame.rect.Rect(50 + noteLocationX*fret, indicatorLocationY - string*(indicatorHeight + 7 - string/1.5), indicatorWidth, indicatorHeight)
+        indicatorHitbox = pygame.rect.Rect(-10 + noteLocationX*fret, indicatorLocationY - string*(indicatorHeight + 7 - string/1.5), indicatorWidth, indicatorHeight)
         indicator.fill((255, 255, 255, 128))  # notice the alpha value in the color
         screen.blit(indicator, indicatorHitbox)
         testCollision(indicatorHitbox)
@@ -289,6 +278,9 @@ def draw(screen):
     note = getPitchData()
     message_display(note)
 
+    pygame.draw.circle(screen, white, (300,540), 10) # Here <<<
+    pygame.draw.circle(screen, white, (480,540), 10) # Here <<<
+
     i = 0
     while i < len(notesToPlay):
         # print(notesToPlay[i].rect)
@@ -306,7 +298,7 @@ def quitGame():
 
 # MainMenu
 def mainmenu():
-    menu = True
+    menu = False
 
     while menu:
         for event in pygame.event.get():
